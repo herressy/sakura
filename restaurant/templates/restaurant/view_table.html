@@ -1,0 +1,10 @@
+{% for order in table.order_set.all %}
+    <p><b>
+        <a href="{% url 'view-order' order.id %}">Order</a> at seat {{order.seat}}:</b>
+        created {{order.created_at|timesince}} ago
+        <br>
+    </p>
+    {% for meal in order.meal.all  %}
+        <li>{{meal.kind}}: {{meal.name}}</li>
+    {% endfor %}
+{% endfor %}

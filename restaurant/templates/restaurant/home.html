@@ -1,0 +1,17 @@
+{% for table in tables %}
+    <h1><a href="{% url 'view-table' table.number %}">Table {{table.number}}</a></h1>
+        <li>{{table.guest_count}} guests</li>
+        <li>Open {{table.created_at|timesince}} ago</li>
+        
+    {% if table.is_closed %}
+        <p>{{table}} is closed! Don't add any new guests!</p>
+    {% endif %}
+
+    <p><a href="{% url 'update-table' table.number %}">Update table</a></p>
+    <p><a href="{% url 'create-order' table.number %}">Create order</a></p>
+
+    {% empty %}
+    <p>No tables open.</p>
+    
+    <hr>
+{% endfor %}

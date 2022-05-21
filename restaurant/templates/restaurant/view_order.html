@@ -1,0 +1,4 @@
+<h1>{{order.table}}</h1>
+{% for meal in order.meal.all  %}
+    <p>{{meal.kind}}: {{meal.name}}</p>
+{% endfor %}
