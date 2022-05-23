@@ -1,17 +1,26 @@
-{% for table in tables %}
-    <h1><a href="{% url 'view-table' table.number %}">Table {{table.number}}</a></h1>
-        <li>{{table.guest_count}} guests</li>
-        <li>Open {{table.created_at|timesince}} ago</li>
-        
-    {% if table.is_closed %}
-        <p>{{table}} is closed! Don't add any new guests!</p>
+<script>
+    function clicked(e)
+    {
+        if(!confirm('This action will delete all menu items and create basic Sakura menu. Are you sure?')) {
+            e.preventDefault();
+        }
+    }
+</script>
+
+<h1>Welcome to Sakura restaurant!</h1>
+<hr>
+
+{% if user.is_authenticated %}
+    <p>Logged in as: <b>{{ user.username }}</b></p>
+    <p><a href="{% url 'logout-page' %}">Log out</a></p>
+    {% if user.is_superuser %}
+        <p><a href="{% url 'create-basic-menu' %}" onclick="clicked(event)">Create basic Sakura menu</a></p>
     {% endif %}
 
-    <p><a href="{% url 'update-table' table.number %}">Update table</a></p>
-    <p><a href="{% url 'create-order' table.number %}">Create order</a></p>
+{% else %}
+    <p>Welcome. <a href="{% url 'login-page' %}">Please log in.</a></p>
 
-    {% empty %}
-    <p>No tables open.</p>
-    
-    <hr>
-{% endfor %}
+{% endif %}
+<hr>
+
+{% include 'restaurant/tables.html' %}
