@@ -1,4 +1,4 @@
-In Sakura, a restaurant I used to work at, one can find a very interesting style of Japanese cuisine called Teppanyaki. There are U-shaped tables for 10 guests who sit along 3 of the table's sides facing an iron griddle in the middle of the table.
+In Sakura, a restaurant I used to work at, one can find a very interesting style of Japanese cuisine called Teppanyaki. There are U-shaped tables for 10 guests who sit along 3 of the table's sides facing an iron griddle in the middle.
 
 When guests come in, they are welcomed by a hostess, who asks how many they are, accompanies them to a free table, which she sets as "open", and turns on the electric griddle. If the table is not full, she sets a timer for 20 minutes. A server comes soon after and takes an order for drinks. He then serves the drinks, and takes an order for food which he writes down on a standardised paper with a table plan as seen from above.
 
