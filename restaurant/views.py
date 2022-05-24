@@ -10,18 +10,20 @@ from django.views.generic.detail import DetailView
 from django.contrib import messages
 from django.contrib.auth.forms import AuthenticationForm
 
-from pathlib import Path
+from source.settings import BASE_DIR
 import csv
 import os
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+def soft_delete(obj):
+    obj.delete = True
+    obj.save()
 
 def home(request):
     tables = Table.objects.all()
     context = {'tables': tables}
     return render(request, 'restaurant/home.html', context)
 
-def login_page(request):
+def login_view(request):
     form = AuthenticationForm()
     if request.method == 'POST':
         form = AuthenticationForm(data=request.POST)
@@ -31,12 +33,11 @@ def login_page(request):
             return redirect('home')
     
     context = {'form': form}
-    return render(request, 'restaurant/login.html', context)
+    return render(request, 'restaurant/login_view.html', context)
 
-def logout_page(request):
+def logout_view(request):
     logout(request)
     return redirect('home')
-
 
 def create_table(request):
     form = TableForm()
@@ -50,7 +51,7 @@ def create_table(request):
     return render(request, 'restaurant/table_form.html', context)
 
 def view_table(request, pk):
-    table = Table.objects.get(number=pk)
+    table = Table.objects.get(pk=pk)
     orders = Order.objects.filter(table=table)
     context = {
         'table': table,
@@ -59,7 +60,7 @@ def view_table(request, pk):
     return render(request, 'restaurant/view_table.html', context)
 
 def update_table(request, pk):
-    table = Table.objects.get(number=pk)
+    table = Table.objects.get(pk=pk)
     form = TableForm(instance=table)
     if request.method == 'POST':
         form = TableForm(request.POST)
@@ -75,7 +76,7 @@ def create_order(request, pk):
         form = OrderForm(request.POST)
         if form.is_valid():
             order = form.save(commit=False)
-            order.table = Table.objects.get(number=pk)
+            order.table = Table.objects.get(pk=pk)
             order.save()
         return redirect('home')
     context = {'form': form}
@@ -85,6 +86,19 @@ def view_order(request, pk):
     order = Order.objects.get(pk=pk)
     context = {'order': order}
     return render(request, 'restaurant/view_order.html', context)
+
+def delete_order(request, pk):
+    order = Order.objects.get(pk=pk)
+    soft_delete(order)
+    return redirect('home')
+
+def delete_table(request, pk):
+    table = Table.objects.get(pk=pk)
+    soft_delete(table)
+    
+    for order in table.order_set.all():
+        soft_delete(order)
+    return redirect('home')
 
 def create_basic_menu(request):
     """

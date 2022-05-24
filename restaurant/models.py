@@ -5,12 +5,27 @@ import datetime
 from django.db.models import Q
 
 
+class SoftDeleteManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(delete=False)
+
+
+class SoftDeleteModel(models.Model):
+    objects = SoftDeleteManager()
+    all_objects = models.Manager()
+    delete = models.BooleanField(default=False)
+
+    class Meta:
+        abstract = True
+
+
 class NameField(models.CharField):
     def __init__(self, *args, **kwargs):
         super(NameField, self).__init__(*args, **kwargs)
 
     def get_prep_value(self, value):
         return str(value).lower()
+
 
 class User(AbstractUser):
     username = NameField(
@@ -27,7 +42,8 @@ class User(AbstractUser):
         positions = self.groups.values_list('name', flat=True)
         return f"{self.username} {list(positions)}"
 
-class Table(models.Model):
+
+class Table(SoftDeleteModel):
     server = models.ForeignKey(
         User, 
         on_delete=models.SET_NULL, 
@@ -61,7 +77,8 @@ class Table(models.Model):
     def is_closed(self):
         now = timezone.now()
         if self.created_at + datetime.timedelta(minutes=20) < now:
-            return True
+            return '(closed)'
+        return ''
 
     @property
     def guest_count(self):
@@ -71,6 +88,7 @@ class Table(models.Model):
 
     def __str__(self) -> str:
         return f'Table {self.number}'
+
 
 class Meal(models.Model):
     kind = models.CharField(max_length=50)
@@ -83,7 +101,8 @@ class Meal(models.Model):
     def __str__(self) -> str:
         return f'{self.kind}: {self.name}'
 
-class Order(models.Model):
+
+class Order(SoftDeleteModel):
     seat = models.IntegerField(
         choices=[(i, i) for i in range(1, 11)]
     )
