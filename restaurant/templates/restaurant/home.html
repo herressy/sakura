@@ -1,26 +1,27 @@
 <script>
-    function clicked(e)
+    function clicked(e, message)
     {
-        if(!confirm('This action will delete all menu items and create basic Sakura menu. Are you sure?')) {
+        if(!confirm(message)) {
             e.preventDefault();
         }
     }
 </script>
 
-<h1>Welcome to Sakura restaurant!</h1>
+<h1>Welcome to Sakura Restaurant!</h1>
 <hr>
 
 {% if user.is_authenticated %}
     <p>Logged in as: <b>{{ user.username }}</b></p>
-    <p><a href="{% url 'logout-page' %}">Log out</a></p>
+    <p><a href="{% url 'logout-view' %}">Log out</a></p>
+
     {% if user.is_superuser %}
-        <p><a href="{% url 'create-basic-menu' %}" onclick="clicked(event)">Create basic Sakura menu</a></p>
+        <p><a href="{% url 'create-basic-menu' %}" onclick="clicked(event, 'This will reset current menu. Are you sure?')">Create basic Sakura menu</a></p>
     {% endif %}
 
+
+    {% include 'restaurant/tables.html' %}
+
 {% else %}
-    <p>Welcome. <a href="{% url 'login-page' %}">Please log in.</a></p>
+    <p><a href="{% url 'login-view' %}">Log in</a>, please.</p>
 
 {% endif %}
-<hr>
-
-{% include 'restaurant/tables.html' %}

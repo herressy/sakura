@@ -1,10 +1,13 @@
+<h2><a href="{% url 'view-table' table.id %}">Table {{table.number}} {{table.is_closed}}</a></h2>
+<hr>
 {% for order in table.order_set.all %}
     <p><b>
         <a href="{% url 'view-order' order.id %}">Order</a> at seat {{order.seat}}:</b>
         created {{order.created_at|timesince}} ago
-        <br>
     </p>
     {% for meal in order.meal.all  %}
         <li>{{meal.kind}}: {{meal.name}}</li>
     {% endfor %}
+    <a href="{% url 'delete-order' order.id %}">Delete order</b>
+    <hr>
 {% endfor %}
