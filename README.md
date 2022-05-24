@@ -17,7 +17,4 @@ Requirements:
 6. New guests can be added only to tables that have been open for less than 20 minutes.
 7. Occasionaly it happens that a guest makes an additional order, so there can be more than one order per seat.
 8. Servers and cooks should be notified when assigned to a table.
-<<<<<<< HEAD
 9. Cooks should know exactly what meal goes to which seat.
-=======
->>>>>>> ae869ee7ef991f9415c05ad59a5671e9c7ec992f
