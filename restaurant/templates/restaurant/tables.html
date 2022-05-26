@@ -1,12 +1,12 @@
 <hr>
 {% for table in tables %}
+    <h3><a href="{% url 'view-table' table.id %}">Table {{table.number}} {{table.is_closed}}</a></h3>
+
+    <li>Open: {{ table.created_at|timesince }} ago</li>
+    <li>Guests: {{ table.guest_count }}</li>
+    <li>Orders: {{ table.order_set.count }}</li>
+
     {% if table.server == user or user.is_superuser %}
-        <h2><a href="{% url 'view-table' table.id %}">Table {{table.number}} {{table.is_closed}}</a></h2>
-
-        <li>Open: {{ table.created_at|timesince }} ago</li>
-        <li>Number of guests: {{ table.guest_count }}</li>
-        <li>Number of orders: {{ table.order_set.count }}</li>
-
         <p><a href="{% url 'update-table' table.id %}">Update table</a></p>
         <p><a href="{% url 'create-order' table.id %}">Create order</a></p>
         <p><a href="{% url 'delete-table' table.id %}" onclick="clicked(event, 'This will delete the table and all related orders. Are you sure?')">Delete table</a></p>

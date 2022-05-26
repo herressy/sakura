@@ -1,3 +1,10 @@
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+<h2>Add a table</h2>
 <form action="" method="post">
     {% csrf_token %}
     {{ form.as_p }}
