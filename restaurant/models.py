@@ -1,19 +1,27 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, Group
+from django.dispatch import receiver
 from django.utils import timezone
-import datetime
 from django.db.models import Q
+from django.db.models.signals import post_save
+from django.core.mail import send_mail
+
+from datetime import timedelta
 
 
 class SoftDeleteManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(delete=False)
+        return super().get_queryset().filter(deleted=False)
 
 
 class SoftDeleteModel(models.Model):
     objects = SoftDeleteManager()
     all_objects = models.Manager()
-    delete = models.BooleanField(default=False)
+    deleted = models.BooleanField(default=False, editable=False)
+
+    def soft_delete(self):
+        self.deleted = True
+        self.save()
 
     class Meta:
         abstract = True
@@ -35,12 +43,23 @@ class User(AbstractUser):
     )
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=14, blank=True)
+    POSITION_CHOICES = (
+        ('server', 'server'),
+        ('cook', 'cook'),
+        ('manager', 'manager'),
+        ('hostess', 'hostess'),
+    )
+    position=models.CharField(
+        max_length=20, 
+        choices=POSITION_CHOICES, 
+        null=True
+    )
+
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email']
 
     def __str__(self):
-        positions = self.groups.values_list('name', flat=True)
-        return f"{self.username} {list(positions)}"
+        return f"{self.username} ({self.position})"
 
 
 class Table(SoftDeleteModel):
@@ -50,7 +69,7 @@ class Table(SoftDeleteModel):
         related_name='tables', 
         null=True,
         limit_choices_to=(
-            Q(groups__name='Servers') | 
+            Q(groups__name='servers') | 
             Q(is_superuser=True)
         )
     )
@@ -60,13 +79,13 @@ class Table(SoftDeleteModel):
         related_name='table', 
         null=True,
         limit_choices_to=(
-            Q(groups__name='Cooks') | 
+            Q(groups__name='cooks') | 
             Q(is_superuser=True)
         )
     )
     number = models.PositiveSmallIntegerField(
         choices=[(i, i) for i in range(1, 20)], 
-        unique=True, null=True
+        null=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -76,7 +95,7 @@ class Table(SoftDeleteModel):
     @property
     def is_closed(self):
         now = timezone.now()
-        if self.created_at + datetime.timedelta(minutes=20) < now:
+        if self.created_at + timedelta(minutes=20) < now:
             return '(closed)'
         return ''
 
@@ -111,6 +130,7 @@ class Order(SoftDeleteModel):
         on_delete=models.CASCADE
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    meal = models.ManyToManyField(Meal, blank=True)
     STEAK_CHOICES = (
         ('rare', 'rare'),
         ('medium rare', 'medium rare'),
@@ -118,7 +138,6 @@ class Order(SoftDeleteModel):
         ('medium well', 'medium well'),
         ('well done', 'well done'),
     )
-    meal = models.ManyToManyField(Meal, blank=True)
     steak = models.CharField(
         max_length=50, 
         choices=STEAK_CHOICES, 
@@ -136,3 +155,22 @@ class Order(SoftDeleteModel):
 
     def __str__(self) -> str:
         return f'table {self.table}: seat {self.seat}'
+
+
+@receiver(post_save, sender=Table)
+def notify_cook(sender, instance, **kwargs):
+    if not instance.deleted:
+        send_mail(
+            'You have a new table!',
+            f'You have been assigned to {instance}. \
+            Check the table for order updates.',
+            'admin@sakura.com',
+            [f'{instance.cook.email}'],
+            fail_silently=False
+        )
+
+@receiver(post_save, sender=User)
+def add_to_group(sender, instance, **kwargs):
+    if not instance.is_superuser:
+        group, created = Group.objects.get_or_create(name=instance.position)
+        group.user_set.add(instance)
