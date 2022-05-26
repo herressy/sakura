@@ -7,21 +7,32 @@
     }
 </script>
 
+{% load auth_extras %}
+
 <h1>Welcome to Sakura Restaurant!</h1>
 <hr>
 
 {% if user.is_authenticated %}
     <p>Logged in as: <b>{{ user.username }}</b></p>
     <p><a href="{% url 'logout-view' %}">Log out</a></p>
-
+    <hr>
+    
     {% if user.is_superuser %}
-        <p><a href="{% url 'create-basic-menu' %}" onclick="clicked(event, 'This will reset current menu. Are you sure?')">Create basic Sakura menu</a></p>
+        <p><a href="{% url 'history-view' 'view' %}">Orders history</a></p>
+        <p><a 
+            href="{% url 'create-basic-menu' %}" 
+            onclick="clicked(event, 'This will reset current menu. Are you sure?')">Create basic Sakura menu
+        </a></p>
     {% endif %}
-
+    <hr>
+    <h2>Tables</h2>
+    {% if perms.restaurant.add_table %}
+        <p><a href="{% url 'create-table' %}">Add a table</a></p>
+    {% endif %}
 
     {% include 'restaurant/tables.html' %}
 
 {% else %}
-    <p><a href="{% url 'login-view' %}">Log in</a>, please.</p>
+    <p><a href="{% url 'login-view' %}">Log in</a></p>
 
 {% endif %}

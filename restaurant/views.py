@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, HttpResponse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -14,9 +14,6 @@ from source.settings import BASE_DIR
 import csv
 import os
 
-def soft_delete(obj):
-    obj.delete = True
-    obj.save()
 
 def home(request):
     tables = Table.objects.all()
@@ -31,7 +28,6 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
             return redirect('home')
-    
     context = {'form': form}
     return render(request, 'restaurant/login_view.html', context)
 
@@ -41,11 +37,16 @@ def logout_view(request):
 
 def create_table(request):
     form = TableForm()
+    errors = False
     if request.method == 'POST':
         form = TableForm(request.POST)
-        if form.is_valid():
+        table_number = request.POST.get('number')
+        if Table.objects.filter(number=table_number).exists():
+            messages.error(request, f'Table {table_number} is already in use!')
+            errors = True
+        if form.is_valid() and not errors:
             form.save()
-        return redirect('home')
+            return redirect('home')
 
     context = {'form': form}
     return render(request, 'restaurant/table_form.html', context)
@@ -89,20 +90,30 @@ def view_order(request, pk):
 
 def delete_order(request, pk):
     order = Order.objects.get(pk=pk)
-    soft_delete(order)
-    return redirect('home')
+    order.soft_delete()
+    return redirect(request.META.get('HTTP_REFERER'))
 
 def delete_table(request, pk):
     table = Table.objects.get(pk=pk)
-    soft_delete(table)
-    
+    table.soft_delete()
     for order in table.order_set.all():
-        soft_delete(order)
+        order.soft_delete()
     return redirect('home')
+
+def history_view(request, action):
+    """
+    Shows all soft-deleted orders.
+    """
+    orders = Order.all_objects.filter(deleted=True).all()
+    if action == 'delete':
+        orders.delete()
+        messages.info(request, 'Orders history has been deleted.')
+    context = {'orders': orders}
+    return render(request, 'restaurant/orders_history.html', context)
 
 def create_basic_menu(request):
     """
-    Clears meal objects and creates basic Sakura menu from csv
+    Deletes meal objects and creates basic Sakura menu from csv
     files in sakura/menu.
     """
     Meal.objects.all().delete()

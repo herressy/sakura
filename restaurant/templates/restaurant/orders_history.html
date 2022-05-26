@@ -1,0 +1,21 @@
+<h2>Orders history</h2>
+
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+{% if orders %}
+    <p><a href="{% url 'history-view' 'delete' %}">Delete orders history</a></p>
+    <hr>
+{% endif %}
+
+{% for order in orders %}
+    <p>{{order.table}}</p>
+    <p>{{order.created_at}}</p>
+    {% for meal in order.meal.all  %}
+        <p>{{meal.kind}}: {{meal.name}}</p>
+    {% endfor %}
+    <hr>
+{% endfor %}
