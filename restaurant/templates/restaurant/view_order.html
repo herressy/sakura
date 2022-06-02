@@ -1,4 +1,4 @@
-<h2>{{order.table}}</h2>
+<h2>{{ order.table }}</h2>
 {% for meal in order.meal.all  %}
-    <p>{{meal.kind}}: {{meal.name}}</p>
+    <p>{{ meal.kind }}: {{ meal.name }}</p>
 {% endfor %}

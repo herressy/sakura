@@ -66,7 +66,7 @@ class Table(SoftDeleteModel):
         related_name='tables', 
         null=True,
         limit_choices_to=(
-            Q(groups__name='servers') | 
+            Q(groups__name='server') | 
             Q(is_superuser=True)
         )
     )
@@ -76,7 +76,7 @@ class Table(SoftDeleteModel):
         related_name='table', 
         null=True,
         limit_choices_to=(
-            Q(groups__name='cooks') | 
+            Q(groups__name='cook') | 
             Q(is_superuser=True)
         )
     )
@@ -165,9 +165,3 @@ def notify_cook(sender, instance, **kwargs):
             [f'{instance.cook.email}'],
             fail_silently=False
         )
-
-@receiver(pre_save, sender=Group)
-def verify_group_name(sender, instance, **kwargs):
-    valid_group_names = ['server', 'hostess', 'cook', 'manager']
-    if not instance.name in valid_group_names:
-        raise Exception('Invalid group name!')

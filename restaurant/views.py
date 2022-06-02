@@ -124,13 +124,10 @@ def create_basic_menu(request):
                 reader = csv.DictReader(f, delimiter=';')
                 for line in reader:
                     try:
-                        name = line['NAME']
-                        price = line['PRICE']
-                        kind = file.rsplit('.')[0]
                         Meal.objects.create(
-                            name=name,
-                            price=price,
-                            kind=kind,
+                            name=line['NAME'],
+                            price=line['PRICE'],
+                            kind=file.rsplit('.')[0]
                         )
                     except ValueError as Err:
                         print(str(Err).strip('.') + ' from ' + file)

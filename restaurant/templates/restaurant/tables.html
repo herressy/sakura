@@ -1,6 +1,6 @@
 <hr>
 {% for table in tables %}
-    <h3><a href="{% url 'view-table' table.id %}">Table {{table.number}}{{table.is_closed}}</a></h3>
+    <h3><a href="{% url 'view-table' table.id %}">{{ table }}{{ table.is_closed }}</a></h3>
 
     <li>Open: {{ table.created_at|timesince }} ago</li>
     <li>Guests: {{ table.guest_count }}</li>
