@@ -3,8 +3,9 @@ from django.contrib.auth.models import AbstractUser, Group
 from django.dispatch import receiver
 from django.utils import timezone
 from django.db.models import Q
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.core.mail import send_mail
+from django.core.validators import RegexValidator
 
 from datetime import timedelta
 
@@ -39,27 +40,23 @@ class User(AbstractUser):
     username = NameField(
         max_length=50, 
         unique=True, 
-        help_text='Use the following format: firstname_surname'
+        help_text='Use the following format: firstname_lastname',
+        validators=[RegexValidator(
+            regex='^[a-zA-Z]+_[a-zA-Z]+$',
+            message='Use the following format: firstname_lastname',
+            code='invalid_username'
+            ),
+        ]
     )
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=14, blank=True)
-    POSITION_CHOICES = (
-        ('server', 'server'),
-        ('cook', 'cook'),
-        ('manager', 'manager'),
-        ('hostess', 'hostess'),
-    )
-    position=models.CharField(
-        max_length=20, 
-        choices=POSITION_CHOICES, 
-        null=True
-    )
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email']
 
     def __str__(self):
-        return f"{self.username} ({self.position})"
+        position = self.groups.values_list('name',flat = True)
+        return f"{self.username} {list(position)}"
 
 
 class Table(SoftDeleteModel):
@@ -96,7 +93,7 @@ class Table(SoftDeleteModel):
     def is_closed(self):
         now = timezone.now()
         if self.created_at + timedelta(minutes=20) < now:
-            return '(closed)'
+            return ' (closed)'
         return ''
 
     @property
@@ -169,8 +166,8 @@ def notify_cook(sender, instance, **kwargs):
             fail_silently=False
         )
 
-@receiver(post_save, sender=User)
-def add_to_group(sender, instance, **kwargs):
-    if not instance.is_superuser:
-        group, created = Group.objects.get_or_create(name=instance.position)
-        group.user_set.add(instance)
+@receiver(pre_save, sender=Group)
+def verify_group_name(sender, instance, **kwargs):
+    valid_group_names = ['server', 'hostess', 'cook', 'manager']
+    if not instance.name in valid_group_names:
+        raise Exception('Invalid group name!')
