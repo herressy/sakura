@@ -47,7 +47,6 @@ def create_table(request):
         if form.is_valid() and not errors:
             form.save()
             return redirect('home')
-
     context = {'form': form}
     return render(request, 'restaurant/table_form.html', context)
 
@@ -71,6 +70,13 @@ def update_table(request, pk):
     context = {'form': form}
     return render(request, 'restaurant/table_form.html', context)
 
+def delete_table(request, pk):
+    table = Table.objects.get(pk=pk)
+    table.soft_delete()
+    for order in table.order_set.all():
+        order.soft_delete()
+    return redirect('home')
+
 def create_order(request, pk):
     form = OrderForm()
     if request.method == 'POST':
@@ -92,13 +98,6 @@ def delete_order(request, pk):
     order = Order.objects.get(pk=pk)
     order.soft_delete()
     return redirect(request.META.get('HTTP_REFERER'))
-
-def delete_table(request, pk):
-    table = Table.objects.get(pk=pk)
-    table.soft_delete()
-    for order in table.order_set.all():
-        order.soft_delete()
-    return redirect('home')
 
 def history_view(request, action):
     """

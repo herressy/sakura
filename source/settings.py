@@ -32,7 +32,7 @@ AUTH_USER_MODEL = 'restaurant.User'
 # Application definition
 
 INSTALLED_APPS = [
-    'restaurant',
+    'restaurant.apps.RestaurantConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
